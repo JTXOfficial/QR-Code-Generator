@@ -41,22 +41,22 @@ public class QRCodeGenerator extends Application {
 
         Label lblTitle = new Label("WiFi QR Generator");
         lblTitle.setFont(Font.font(LARGE_FONT));
-        root.add(lblTitle, 1,0);
+        root.add(lblTitle, 0,1, 2, 1);
 
         Label lblNetwork = new Label("Network Name");
         lblNetwork.setFont(Font.font(MEDIUM_FONT));
-        root.add(lblNetwork, 0, 1);
+        root.add(lblNetwork, 0, 2);
 
         TextField txtNetwork = new TextField();
         txtNetwork.setPromptText("SSID");
-        root.add(txtNetwork, 1, 1);
+        root.add(txtNetwork, 1, 2);
 
         Label lblPassword = new Label("Password");
         lblPassword.setFont(Font.font(MEDIUM_FONT));
-        root.add(lblPassword, 0, 2);
+        root.add(lblPassword, 0, 3);
 
         PasswordField psfPassword = new PasswordField();
-        root.add(psfPassword, 1, 2);
+        root.add(psfPassword, 1, 3);
 
         Label lblEncryption = new Label("Encryption");
         lblEncryption.setFont(Font.font(MEDIUM_FONT));
@@ -88,7 +88,7 @@ public class QRCodeGenerator extends Application {
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Location");
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image File", "*.png", "*.jpg", "*gif"));
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image File", "*.png", "*.jpg"));
 
         Label lblResponse = new Label();
         lblResponse.setFont(Font.font(SMALL_FONT));
@@ -109,14 +109,8 @@ public class QRCodeGenerator extends Application {
                 if (!lblNetwork.getText().isEmpty()) {
                     if (!psfPassword.getText().isEmpty()) {
                         if (rbEncryptionWPA.isSelected()) {
-                            try {
-                                generate(file.getPath(), txtNetwork.getText(), psfPassword.getText());
-                                lblResponse.setText("QR Code created successfully.");
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (WriterException e) {
-                                e.printStackTrace();
-                            }
+                            generate(file.getPath(), txtNetwork.getText(), psfPassword.getText());
+                            lblResponse.setText("QR Code created successfully.");
                         } else if (rbEncryptionNone.isSelected()) {
                             lblResponse.setText("Sorry, option this isn't currently available.");
                         } else if (rbEncryptionNone.isSelected()) {
@@ -139,7 +133,7 @@ public class QRCodeGenerator extends Application {
         launch(args);
     }
 
-    public void generate(String path, String ssid, String password) throws IOException, WriterException {
+    public void generate(String path, String ssid, String password) {
         String wifiString = "WIFI:S:%s;T:WPA;P:%s;;";
         wifiString = String.format(wifiString, ssid, password);
 
@@ -147,9 +141,13 @@ public class QRCodeGenerator extends Application {
         Hashtable<EncodeHintType, ErrorCorrectionLevel> hints = new Hashtable<>();
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
 
-        // Image has to be big enough to print onto A4 in reasonable quality
-        BitMatrix bitMatrix = writer.encode(wifiString, BarcodeFormat.QR_CODE, 1600, 1600, hints);
-        MatrixToImageWriter.writeToFile(bitMatrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
+        try {
+            // Image has to be big enough to print onto A4 in reasonable quality
+            BitMatrix bitMatrix = writer.encode(wifiString, BarcodeFormat.QR_CODE, 1600, 1600, hints);
+            MatrixToImageWriter.writeToFile(bitMatrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
+        } catch (IOException | WriterException e) {
+            e.printStackTrace();
+        }
     }
 
 }
